@@ -2,23 +2,50 @@ from moviepy.editor import *
 import whisper
 import os
 import random
+from PIL import ImageFont
+from moviepy.editor import TextClip, CompositeVideoClip
+from PIL import ImageFont
 
-def create_outlined_text(text, fontsize=100, font="/workspaces/youtube-agents/Impact.ttf", color="white", outline_color="black"):
-    """Creates text with a simulated outline effect."""
+def split_text_to_fit(text, font_path, fontsize, max_width):
+    """Splits text so the first line fits max_width. Returns (first_line, rest)."""
+    font = ImageFont.truetype(font_path, fontsize)
+    words = text.split()
+    line = ""
+    for i, word in enumerate(words):
+        test_line = line + (" " if line else "") + word
+        w, _ = font.getsize(test_line)
+        if w > max_width:
+            break
+        line = test_line
+    rest = " ".join(words[i:])
+    return line, rest
 
-    # Create the black outline text clip
-    outline_clip = TextClip(text, fontsize=fontsize + 4,  # Slightly larger
-                            font=font, color=outline_color,
-                            method="caption", size=(1000, None), align="center")
+def create_outlined_text(text, fontsize=100, font="/workspaces/youtube-agents/Impact.ttf",
+                         color="white", outline_color="black", video_width=1080):
 
-    # Create the white fill text clip
-    fill_clip = TextClip(text, fontsize=fontsize, font=font,
-                            color=color, method="caption",
-                            size=(1000, None), align="center")
+    # Split text into first line (yellow) and rest (white)
+    first_line, remaining_text = split_text_to_fit(text, font, fontsize, video_width - 40)
 
-    # Composite the clips (fill over outline)
-    text_clip = CompositeVideoClip([outline_clip, fill_clip.set_position("center")])
-    return text_clip
+    def outlined_clip(txt, txt_color):
+        outline = TextClip(txt, fontsize=fontsize + 4, font=font,
+                           color=outline_color, method="caption",
+                           size=(video_width, None), align="center")
+        fill = TextClip(txt, fontsize=fontsize, font=font,
+                        color=txt_color, method="caption",
+                        size=(video_width, None), align="center")
+        return CompositeVideoClip([outline, fill.set_position("center")])
+
+    clips = []
+    if first_line:
+        clips.append(outlined_clip(first_line, "yellow"))
+    if remaining_text:
+        clips.append(outlined_clip(remaining_text, "white").set_position(("center", clips[0].size[1])))
+
+    # Combine vertically
+    total_height = sum([clip.size[1] for clip in clips])
+    final = CompositeVideoClip(clips, size=(video_width, total_height))
+    return final
+
 
 def create_captioned_video_with_background(audio_file, output_video, video_folder, model_size="base"):
     try:
