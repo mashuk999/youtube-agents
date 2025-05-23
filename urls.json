@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://example.com/article1",
+    "date": "2025-05-23",
+    "title": "Understanding JSON Structure",
+    "hashtags": ["#JSON", "#WebDevelopment", "#Programming"]
+  },
+  {
+    "url": "https://example.com/article2",
+    "date": "2025-05-22",
+    "title": "A Guide to RESTful APIs",
+    "hashtags": ["#API", "#REST", "#Backend"]
+  },
+  {
+    "url": "https://example.com/article3",
+    "date": "2025-05-21",
+    "title": "JavaScript ES2025 Features",
+    "hashtags": ["#JavaScript", "#ES2025", "#Coding"]
+  }
+]
