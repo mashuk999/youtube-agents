@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 8 * * *'   # Every day at 8 AM UTC
     - cron: '0 20 * * *'  # Every day at 8 PM UTC
-  workflow_dispatch:       # Manual button trigger
+  workflow_dispatch:
 
 jobs:
   run-container-task:
@@ -17,21 +17,30 @@ jobs:
       - name: Pull container image
         run: docker pull quay.io/abhaynigam/ytagent
 
-      - name: Run container with explicit command
-        id: run_container
+      - name: Create container (idle)
+        id: create_container
         run: |
-          CONTAINER_ID=$(docker run -d quay.io/abhaynigam/ytagent bash /app/main.sh)
+          CONTAINER_ID=$(docker create -it quay.io/abhaynigam/ytagent tail -f /dev/null)
           echo "container_id=$CONTAINER_ID" >> $GITHUB_OUTPUT
 
-      - name: Wait for container to finish
+      - name: Copy currentindex.txt into container before execution
         run: |
-          docker wait ${{ steps.run_container.outputs.container_id }}
+          docker cp currentindex.txt ${{ steps.create_container.outputs.container_id }}:/app/currentindex.txt
+
+      - name: Start container
+        run: |
+          docker start ${{ steps.create_container.outputs.container_id }}
+
+      - name: Run main.sh using bash inside container
+        run: |
+          docker exec ${{ steps.create_container.outputs.container_id }} bash /app/main.sh
 
       - name: Copy output files from container
         run: |
-          docker cp ${{ steps.run_container.outputs.container_id }}:/app/urls.json urls.json
-          docker cp ${{ steps.run_container.outputs.container_id }}:/app/currentindex.txt currentindex.txt
-          docker rm ${{ steps.run_container.outputs.container_id }}
+          docker cp ${{ steps.create_container.outputs.container_id }}:/app/urls.json urls.json
+          docker cp ${{ steps.create_container.outputs.container_id }}:/app/currentindex.txt currentindex.txt
+
+          docker rm -f ${{ steps.create_container.outputs.container_id }}
 
       - name: Commit and push changes
         run: |
