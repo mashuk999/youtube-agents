@@ -21,7 +21,7 @@ def convertToJson(response):
 
 def getOpenRouterResponse(quote):
     msg = '''
-    Write a faceless Instagram Reel script under 30 seconds about Alpha Male Traits, formatted in JSON for Text-to-Speech (TTS) with timestamps. 
+    Write a faceless Instagram Reel script under 30 seconds, formatted in JSON for Text-to-Speech (TTS) with timestamps. 
     The script should include a message with different frames (each with a text line, duration, and scene description in keywords). 
     The structure of the JSON should have a list of frames, 
     each with a 'frame' number, 'text' to be read, 'duration' for the TTS, and 'scene' describing the visuals of the scene in keywords.
@@ -29,32 +29,59 @@ def getOpenRouterResponse(quote):
     You can use below quality to make the script more engaging : 
     ''' + quote
 
+    #msg = ''' Write a faceless Instagram Reel script under 30 seconds. You can use below quality to make the script more engaging :''' + quote
+
     completion = client.chat.completions.create(
-    extra_body={},
-    model="qwen/qwen2.5-vl-72b-instruct:free",
-    messages=[
-        {
-        "role": "user",
-        "content": [
+        model="qwen/qwen2.5-vl-72b-instruct:free",
+        messages=[
             {
-            "type": "text",
-            "text": msg
+                "role": "user",
+                "content": msg
             }
         ]
-        }
-    ]
+        # response_format={
+        #     "type": "json_schema",
+        #     "json_schema": {
+        #         "name": "motivational_video_script",
+        #         "strict": True,
+        #         "schema": {
+        #             "type": "object",
+        #             "properties": {
+        #                 "frames": {
+        #                     "type": "array",
+        #                     "items": {
+        #                         "type": "object",
+        #                         "properties": {
+        #                             "frame": {
+        #                                 "type": "integer",
+        #                                 "description": "Frame number"
+        #                             },
+        #                             "text": {
+        #                                 "type": "string",
+        #                                 "description": "Motivational text for the frame"
+        #                             },
+        #                             "duration": {
+        #                                 "type": "integer",
+        #                                 "description": "Duration of the frame in seconds"
+        #                             },
+        #                             "scene": {
+        #                                 "type": "string",
+        #                                 "description": "Description of the scene visuals"
+        #                             }
+        #                         },
+        #                         "required": ["frame", "text", "duration", "scene"],
+        #                         "additionalProperties": False
+        #                     }
+        #                 }
+        #             },
+        #             "required": ["frames"],
+        #             "additionalProperties": False
+        #         }
+        #     }
+        # }
     )
-    print(completion.choices[0].message.content)
-    sendForAudioGeneration(convertToJson(completion.choices[0].message.content))
-    return convertToJson(completion.choices[0].message.content)
 
-def sendForAudioGeneration(response):
-    finalMsg = ''
-    for line in response['frames']:
-        finalMsg = finalMsg + str(line['text'])
-    print(finalMsg)
-    getAudiobyLLM.convertToSpeech(finalMsg)
-    return True
+    print(completion.choices[0].message.content)
+    # sendForAudioGeneration(convertToJson(completion.choices[0].message.content))
+    return convertToJson(completion.choices[0].message.content)
     
-quote = "Courage"
-print(json.dumps(getOpenRouterResponse(quote)))
