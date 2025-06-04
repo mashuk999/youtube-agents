@@ -44,7 +44,7 @@ jobs:
 
       - name: Run main.sh using bash inside container
         run: |
-          docker exec ${{ steps.create_container.outputs.container_id }} ls -l /app
+          docker exec ${{ steps.create_container.outputs.container_id }} sh /app/main.sh
 
       - name: Copy output files from container
         run: |
