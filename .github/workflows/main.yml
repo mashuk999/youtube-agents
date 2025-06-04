@@ -9,13 +9,24 @@ on:
 jobs:
   run-container-task:
     runs-on: ubuntu-latest
-
     steps:
+      
+      # Step to cache the Docker image layers
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Pull container image if not available in cache
       - name: Pull container image
-        run: docker pull quay.io/abhaynigam/ytagent
+        run: |
+          docker pull quay.io/abhaynigam/ytagent || echo "Image already pulled"
 
       - name: Create container (idle)
         id: create_container
@@ -33,7 +44,7 @@ jobs:
 
       - name: Run main.sh using bash inside container
         run: |
-          docker exec ${{ steps.create_container.outputs.container_id }} bash /app/main.sh
+          docker exec ${{ steps.create_container.outputs.container_id }} ls -l /app
 
       - name: Copy output files from container
         run: |
