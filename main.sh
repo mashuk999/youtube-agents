@@ -1,7 +1,7 @@
 #!/bin/bash
 
-python main.py
-python createVideo.py
-python uploadVideo.py
+python /app/main.py
+python /app/createVideo.py
+python /app/uploadVideo.py
 
 
