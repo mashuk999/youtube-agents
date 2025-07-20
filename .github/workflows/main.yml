@@ -10,8 +10,6 @@ jobs:
   run-container-task:
     runs-on: ubuntu-latest
     steps:
-      
-      # Step to cache the Docker image layers
       - name: Cache Docker layers
         uses: actions/cache@v3
         with:
@@ -23,7 +21,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Pull container image if not available in cache
       - name: Pull container image
         run: |
           docker pull quay.io/abhaynigam/ytagent || echo "Image already pulled"
@@ -34,9 +31,9 @@ jobs:
           CONTAINER_ID=$(docker create -it quay.io/abhaynigam/ytagent tail -f /dev/null)
           echo "container_id=$CONTAINER_ID" >> $GITHUB_OUTPUT
 
-      - name: Copy currentindex.txt into container before execution
+      - name: Copy all repo contents into container at /app
         run: |
-          docker cp currentindex.txt ${{ steps.create_container.outputs.container_id }}:/app/currentindex.txt
+          docker cp . ${{ steps.create_container.outputs.container_id }}:/app
 
       - name: Start container
         run: |
